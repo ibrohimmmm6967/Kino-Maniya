@@ -151,7 +151,7 @@ async def show_all(message: types.Message):
         m = movie_row_to_dict(r)
         if not m:
             continue
-        text += f"🎬 {m.get('name', 'Noma\'lum')} | 🆔 <code>{m.get('code', '-')}</code>\n"
+        text += f'🎬 {m.get("name", "Noma\'lum")} | 🆔 <code>{m.get("code", "-")}</code>\n'
 
     text += "\n💡 Kinoni ko'rish uchun uning kodini yuboring."
     await message.answer(text, parse_mode="HTML")

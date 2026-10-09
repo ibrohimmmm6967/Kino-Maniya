@@ -1,6 +1,7 @@
 import os
 import asyncio
 import time
+from aiohttp import web
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
@@ -347,14 +348,22 @@ async def handle_video(message: Message):
     )
 
 
-# ================= RUN =================
+# ============= RUN =============
+async def handle(request):
+    return web.Response(text="Bot is running!")
+
 async def main():
     init_db()
-    print("Bot polling started...")
+    app = web.Application()
+    app.router.add_get('/', handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    print("Bot started...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
 

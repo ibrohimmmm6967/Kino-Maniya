@@ -1,6 +1,7 @@
 import os
 import asyncio
 import time
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
@@ -348,21 +349,45 @@ async def handle_video(message: Message):
     )
 
 
-# ============= RUN =============
+# ============ WEBHOOK RUN ============
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiohttp import web
+
 async def handle(request):
     return web.Response(text="Bot is running!")
+
+async def on_startup(bot: Bot):
+    TOKEN = os.getenv("8713766431:AAFrkUH_OK3sl98PRgB2HCAow39gjhddEOw")
+    RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
+    WEBHOOK_URL = f"{RENDER_EXTERNAL_URL}/webhook/{TOKEN}"
+    await bot.set_webhook(WEBHOOK_URL)
 
 async def main():
     init_db()
     app = web.Application()
     app.router.add_get('/', handle)
+
+    TOKEN = os.getenv("BOT_TOKEN")
+    WEBHOOK_PATH = f"/webhook/{TOKEN}"
+
+    webhook_requests_handler = SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+    )
+    webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+    setup_application(app, dp, bot=bot)
+
+    dp.startup.register(on_startup)
+
     runner = web.AppRunner(app)
     await runner.setup()
     port = int(os.environ.get("PORT", 8080))
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
-    print("Bot started...")
-    await dp.start_polling(bot)
+    print("Bot webhook rejimida ishga tushdi...")
+    
+    # Server abadiy ishlashi uchun to'xtatib turamiz
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
     asyncio.run(main())

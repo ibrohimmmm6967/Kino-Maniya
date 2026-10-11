@@ -2,9 +2,10 @@ import os
 import asyncio
 import time
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp import web
+from aiogram.http import web
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, Message
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from db_api import *
 from db import init_db
@@ -25,6 +26,35 @@ waiting_name_search = set()
 waiting_order = set()
 adding_movie = {}
 deleting_movie = set()
+CHANNELS = [-1002907774614, -1003972244812]
+
+LINK_1 = "https://t.me/+XOB8UBUeu0Y5YTEy"
+LINK_2 = "https://t.me/+X_MPhalWhgAwNjNi"
+INSTAGRAM_LINK = "https://www.instagram.com/kinofilmlarr.uzz"
+
+
+async def check_sub_channels(bot, user_id):
+    for channel_id in CHANNELS:
+        try:
+            sub = await bot.get_chat_member(chat_id=channel_id, user_id=user_id)
+            if sub.status in ["left", "kicked"]:
+                return False
+        except Exception as e:
+            print(f"Kanalni tekshirishda xato: {e}")
+            return False
+    return True
+
+
+def show_channels_keyboard():
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📢 1-Kanalga a'zo bo'lish", url=LINK_1)],
+            [InlineKeyboardButton(text="📢 2-Kanalga a'zo bo'lish", url=LINK_2)],
+            [InlineKeyboardButton(text="📸 Instagram sahifamiz", url=INSTAGRAM_LINK)],
+            [InlineKeyboardButton(text="Tekshirish ✅", callback_data="check_subscription")],
+        ]
+    )
+    return keyboard
 
 # ================= HELPERS =================
 def normalize_text(s: str) -> str:
@@ -105,18 +135,26 @@ admin_menu = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-# ================= START =================
+# =================== START ===================
 @dp.message(Command("start"))
-async def start(message: types.Message):
-    users.add(message.from_user.id)
-    user_name = message.from_user.first_name
-    photo_path = "banner.jpg"
-    text = (
-        f"🎬 Salom, {user_name}!\n"
-        f"KinoManiya botiga xush kelibsiz!\n\n"
-        f"👇 Filmlar uchun menyudan foydalaning."
-    )
-    await message.answer(text,reply_markup=main_menu)
+async def start(message: types.Message, bot: Bot):
+    is_subscribed = await check_sub_channels(bot, message.from_user.id)
+
+    if is_subscribed:
+        users.add(message.from_user.id)
+        user_name = message.from_user.first_name
+        photo_path = "banner.jpg"
+        text = (
+            f"👋 Salom, {user_name}!\n"
+            f"🎬 KinoManiya botiga xush kelibsiz!\n"
+            f"🍿 Filmlar uchun menyudan foydalaning."
+        )
+        await message.answer(text, reply_markup=main_menu)
+    else:
+        await message.answer(
+            "Botdan foydalanish uchun quyidagi kanallarga va Instagram sahifamizga obuna bo'ling:",
+            reply_markup=show_channels_keyboard(),
+        )
 
 # ================= MENUS =================
 @dp.message(F.text == "🔍 Film qidirish")
@@ -392,6 +430,7 @@ async def main():
     
     # Server abadiy ishlashi uchun to'xtatib turamiz
     await asyncio.Event().wait()
+  
 
 if __name__ == "__main__":
     asyncio.run(main())

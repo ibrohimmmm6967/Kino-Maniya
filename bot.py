@@ -357,7 +357,7 @@ async def handle(request):
     return web.Response(text="Bot is running!")
 
 async def on_startup(bot: Bot):
-    TOKEN = os.getenv("8713766431:AAFrkUH_OK3sl98PRgB2HCAow39gjhddEOw")
+    TOKEN = os.getenv("BOT_TOKEN")
     RENDER_EXTERNAL_URL = os.getenv("RENDER_EXTERNAL_URL")
     WEBHOOK_URL = f"{RENDER_EXTERNAL_URL}/webhook/{TOKEN}"
     await bot.set_webhook(WEBHOOK_URL)
@@ -379,12 +379,16 @@ async def main():
 
     dp.startup.register(on_startup)
 
+    # Render porti uchun 10000 ni qo'yamiz
+    port = int(os.environ.get("PORT", 10000))
+    
     runner = web.AppRunner(app)
     await runner.setup()
-    port = int(os.environ.get("PORT", 8080))
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
-    print("Bot webhook rejimida ishga tushdi...")
+    print(f"Bot webhook rejimida {port}-portda ishga tushdi...")
+    
+    await asyncio.Event().wait()
     
     # Server abadiy ishlashi uchun to'xtatib turamiz
     await asyncio.Event().wait()

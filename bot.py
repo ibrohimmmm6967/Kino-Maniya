@@ -2,7 +2,7 @@ import os
 import asyncio
 import time
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiogram.http import web
+from aiogram import web
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, Message
